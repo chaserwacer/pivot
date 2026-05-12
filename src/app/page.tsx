@@ -16,16 +16,28 @@ export default function HomePage() {
         <p className="mt-1 max-w-md text-sm text-ink-500">{mockWeather.summary}</p>
       </section>
 
-      <Link
-        href="/routes/new?ai=1"
-        className="mb-8 flex items-center justify-between rounded-2xl bg-accent px-5 py-4 text-white shadow-card transition active:scale-[0.99]"
-      >
-        <div>
-          <p className="text-sm font-medium opacity-90">Plan with AI</p>
-          <p className="text-xs opacity-75">Built around your trip, weather and fitness.</p>
-        </div>
-        <span aria-hidden className="text-xl">→</span>
-      </Link>
+      <div className="mb-8 grid gap-3 md:grid-cols-2">
+        <Link
+          href="/routes/new?ai=1"
+          className="flex items-center justify-between rounded-2xl bg-accent px-5 py-4 text-white shadow-card transition active:scale-[0.99]"
+        >
+          <div>
+            <p className="text-sm font-medium opacity-90">Plan with AI</p>
+            <p className="text-xs opacity-75">Built around your trip, weather and fitness.</p>
+          </div>
+          <span aria-hidden className="text-xl">→</span>
+        </Link>
+        <Link
+          href="/plan"
+          className="flex items-center justify-between rounded-2xl border border-ink-100 bg-white px-5 py-4 text-ink-900 shadow-card transition active:scale-[0.99]"
+        >
+          <div>
+            <p className="text-sm font-medium">Trip planner</p>
+            <p className="text-xs text-ink-500">Multi-day itinerary around your stay.</p>
+          </div>
+          <span aria-hidden className="text-xl">→</span>
+        </Link>
+      </div>
 
       <section className="mb-8">
         <div className="mb-3 flex items-baseline justify-between">

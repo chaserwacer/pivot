@@ -1,5 +1,7 @@
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getRoute, mockWeather } from "@/lib/mockData";
+import { ShareButton } from "@/components/ShareButton";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { MapView } from "@/components/MapView";
 import { Chip } from "@/components/Chip";
@@ -7,6 +9,28 @@ import { ActivityGlyph } from "@/components/ActivityGlyph";
 import { DownloadButton } from "@/components/DownloadButton";
 import { Conditions } from "@/components/Conditions";
 import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const route = getRoute(params.id);
+  if (!route) return { title: "Route — Pivot" };
+  const title = `${route.title} — Pivot`;
+  const description = route.summary;
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "article",
+      images: [{ url: "/icon.svg" }],
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description,
+    },
+  };
+}
 
 export default function RouteDetail({ params }: { params: { id: string } }) {
   const route = getRoute(params.id);
@@ -77,6 +101,7 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/routes/${route.id}/export?format=fit`}>FIT</a>
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/strava/connect?route=${route.id}`}>Send to Strava</a>
           <DownloadButton route={route} />
+          <ShareButton title={route.title} text={route.summary} />
         </div>
       </section>
 

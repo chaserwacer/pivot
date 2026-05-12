@@ -11,6 +11,8 @@ export function TopBar() {
         <nav className="hidden gap-6 text-sm text-ink-500 md:flex">
           <Link href="/routes" className="hover:text-ink-900">Discover</Link>
           <Link href="/routes/new" className="hover:text-ink-900">Build</Link>
+          <Link href="/plan" className="hover:text-ink-900">Plan</Link>
+          <Link href="/record" className="hover:text-ink-900">Record</Link>
           <Link href="/settings" className="hover:text-ink-900">AI</Link>
         </nav>
       </div>
