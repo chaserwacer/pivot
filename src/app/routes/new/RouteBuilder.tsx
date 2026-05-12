@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { MapPreview } from "@/components/MapPreview";
+import { MapView } from "@/components/MapView";
 import { ElevationProfile } from "@/components/ElevationProfile";
 import { Chip } from "@/components/Chip";
 import { ActivityGlyph } from "@/components/ActivityGlyph";
@@ -10,23 +10,44 @@ import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
 
 const activities: Activity[] = ["hike", "run", "bike", "ski", "climb"];
 
+// Default to a friendly Aspen-area bbox until iteration 1 wires real
+// geolocation through Capacitor.
+const DEFAULT_BBOX: [number, number, number, number] = [-106.85, 39.17, -106.78, 39.22];
+
+// Nominal moving pace per activity (m/s). Used for the time estimate while
+// Valhalla isn't wired up.
+const PACE: Record<Activity, number> = {
+  hike: 1.2,
+  run: 2.8,
+  bike: 4.5,
+  ski: 0.9,
+  climb: 0.3,
+};
+
 export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
   const [activity, setActivity] = useState<Activity>("hike");
-  const [waypoints, setWaypoints] = useState(3);
+  const [waypoints, setWaypoints] = useState<Array<[number, number]>>([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState<{ route: Route; rationale: string }[] | null>(null);
   const [loading, setLoading] = useState(false);
 
   const stats = useMemo(() => {
-    const distance_m = 2000 * waypoints + 800;
-    const ascent_m = Math.round(distance_m * 0.045);
-    const estimated_time_s = Math.round((distance_m / 4500) * 3600);
-    const elevation = Array.from({ length: 60 }, (_, i) => {
-      const t = i / 59;
+    if (waypoints.length < 2) {
+      return { distance_m: 0, ascent_m: 0, estimated_time_s: 0, elevation: [2400, 2400] };
+    }
+    let dist = 0;
+    for (let i = 1; i < waypoints.length; i++) {
+      dist += haversine(waypoints[i - 1], waypoints[i]);
+    }
+    const ascent_m = Math.round(dist * 0.04);
+    const estimated_time_s = Math.round(dist / PACE[activity]);
+    const samples = 60;
+    const elevation = Array.from({ length: samples }, (_, i) => {
+      const t = i / (samples - 1);
       return 2400 + Math.sin(t * Math.PI) * ascent_m;
     });
-    return { distance_m, ascent_m, estimated_time_s, elevation };
-  }, [waypoints]);
+    return { distance_m: dist, ascent_m, estimated_time_s, elevation };
+  }, [waypoints, activity]);
 
   async function runAi() {
     setLoading(true);
@@ -42,6 +63,26 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
     } finally {
       setLoading(false);
     }
+  }
+
+  function handleMapClick(pt: [number, number]) {
+    setWaypoints((wp) => [...wp, pt]);
+  }
+
+  function undoWaypoint() {
+    setWaypoints((wp) => wp.slice(0, -1));
+  }
+
+  function clearWaypoints() {
+    setWaypoints([]);
+  }
+
+  function closeLoop() {
+    setWaypoints((wp) => (wp.length >= 2 ? [...wp, wp[0]] : wp));
+  }
+
+  function reverseRoute() {
+    setWaypoints((wp) => [...wp].reverse());
   }
 
   return (
@@ -64,7 +105,7 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
           />
           <div className="mt-3 flex flex-wrap gap-2">
             {activities.map((a) => (
-              <button key={a} onClick={() => setActivity(a)}>
+              <button key={a} onClick={() => setActivity(a)} aria-pressed={a === activity}>
                 <Chip active={a === activity}>
                   <ActivityGlyph activity={a} className="h-3.5 w-3.5" />
                   <span className="capitalize">{a}</span>
@@ -100,7 +141,31 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
         </section>
       ) : (
         <>
-          <MapPreview className="h-72" />
+          <MapView
+            className="h-72 md:h-96"
+            bbox={DEFAULT_BBOX}
+            waypoints={waypoints}
+            line={waypoints.length >= 2 ? waypoints : undefined}
+            onClick={handleMapClick}
+          />
+          <p className="mt-2 text-xs text-ink-500">
+            Tap the map to drop a waypoint. {waypoints.length} placed.
+          </p>
+
+          <div className="mt-3 flex flex-wrap gap-2 text-sm">
+            <button onClick={undoWaypoint} disabled={waypoints.length === 0} className="rounded-full border border-ink-100 bg-white px-3 py-1.5 disabled:opacity-40">
+              Undo
+            </button>
+            <button onClick={clearWaypoints} disabled={waypoints.length === 0} className="rounded-full border border-ink-100 bg-white px-3 py-1.5 disabled:opacity-40">
+              Clear
+            </button>
+            <button onClick={closeLoop} disabled={waypoints.length < 2} className="rounded-full border border-ink-100 bg-white px-3 py-1.5 disabled:opacity-40">
+              Close loop
+            </button>
+            <button onClick={reverseRoute} disabled={waypoints.length < 2} className="rounded-full border border-ink-100 bg-white px-3 py-1.5 disabled:opacity-40">
+              Reverse
+            </button>
+          </div>
 
           <div className="mx-0 mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-white p-4 shadow-card">
             <Stat label="Distance" value={formatDistance(stats.distance_m)} />
@@ -114,34 +179,13 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
 
           <div className="mt-5 flex flex-wrap gap-2">
             {activities.map((a) => (
-              <button key={a} onClick={() => setActivity(a)}>
+              <button key={a} onClick={() => setActivity(a)} aria-pressed={a === activity}>
                 <Chip active={a === activity}>
                   <ActivityGlyph activity={a} className="h-3.5 w-3.5" />
                   <span className="capitalize">{a}</span>
                 </Chip>
               </button>
             ))}
-          </div>
-
-          <div className="mt-5 flex items-center justify-between rounded-2xl bg-white p-4 shadow-card">
-            <div>
-              <p className="text-sm font-semibold">Waypoints</p>
-              <p className="text-xs text-ink-500">Tap the map to add. Stand-in slider for the MVP scaffold.</p>
-            </div>
-            <input
-              type="range"
-              min={2}
-              max={10}
-              value={waypoints}
-              onChange={(e) => setWaypoints(parseInt(e.target.value, 10))}
-              className="accent-accent"
-            />
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2 text-sm">
-            <button className="rounded-full border border-ink-100 bg-white px-3 py-1.5">Make a loop</button>
-            <button className="rounded-full border border-ink-100 bg-white px-3 py-1.5">Out &amp; back</button>
-            <button className="rounded-full border border-ink-100 bg-white px-3 py-1.5">Reverse</button>
           </div>
         </>
       )}
@@ -156,4 +200,17 @@ function Stat({ label, value }: { label: string; value: string }) {
       <span className="text-[11px] uppercase tracking-wide text-ink-500">{label}</span>
     </div>
   );
+}
+
+/** Great-circle distance between two [lng, lat] points, in metres. */
+function haversine(a: [number, number], b: [number, number]): number {
+  const R = 6_371_000;
+  const toRad = (d: number) => (d * Math.PI) / 180;
+  const dLat = toRad(b[1] - a[1]);
+  const dLng = toRad(b[0] - a[0]);
+  const lat1 = toRad(a[1]);
+  const lat2 = toRad(b[1]);
+  const h =
+    Math.sin(dLat / 2) ** 2 + Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
 }

@@ -4,6 +4,8 @@ import { ElevationProfile } from "@/components/ElevationProfile";
 import { MapView } from "@/components/MapView";
 import { Chip } from "@/components/Chip";
 import { ActivityGlyph } from "@/components/ActivityGlyph";
+import { DownloadButton } from "@/components/DownloadButton";
+import { Conditions } from "@/components/Conditions";
 import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
 
 export default function RouteDetail({ params }: { params: { id: string } }) {
@@ -53,7 +55,7 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
       </section>
 
       <section className="mt-6 px-5">
-        <h2 className="mb-2 text-sm font-semibold">Today's conditions</h2>
+        <h2 className="mb-2 text-sm font-semibold">Today's weather</h2>
         <div className="rounded-2xl bg-white p-4 text-sm shadow-card">
           <p className="text-ink-700">{mockWeather.summary}</p>
           <p className="mt-1 text-xs text-ink-500">
@@ -63,12 +65,18 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
       </section>
 
       <section className="mt-6 px-5">
-        <h2 className="mb-2 text-sm font-semibold">Export</h2>
+        <h2 className="mb-2 text-sm font-semibold">Recent conditions</h2>
+        <Conditions routeId={route.id} />
+      </section>
+
+      <section className="mt-6 px-5">
+        <h2 className="mb-2 text-sm font-semibold">Export & save</h2>
         <div className="flex flex-wrap gap-2 text-sm">
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/routes/${route.id}/export?format=gpx`}>GPX</a>
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/routes/${route.id}/export?format=kml`}>KML</a>
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/routes/${route.id}/export?format=fit`}>FIT</a>
           <a className="rounded-full border border-ink-100 bg-white px-3 py-1.5" href={`/api/strava/connect?route=${route.id}`}>Send to Strava</a>
+          <DownloadButton route={route} />
         </div>
       </section>
 

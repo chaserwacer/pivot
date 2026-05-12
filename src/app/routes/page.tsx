@@ -1,6 +1,7 @@
 import { seedRoutes } from "@/lib/mockData";
 import { RouteCard } from "@/components/RouteCard";
 import { Chip } from "@/components/Chip";
+import { SearchBar } from "@/components/SearchBar";
 
 const activities = ["all", "hike", "run", "bike", "ski", "climb"] as const;
 
@@ -12,6 +13,10 @@ export default function DiscoverPage({ searchParams }: { searchParams: { activit
     <div className="px-5 pt-4 md:pt-8">
       <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Discover</h1>
       <p className="mt-1 text-sm text-ink-500">Curated routes around you.</p>
+
+      <div className="mt-4">
+        <SearchBar />
+      </div>
 
       <div className="no-scrollbar mt-4 -mx-5 flex gap-2 overflow-x-auto px-5">
         {activities.map((a) => (
