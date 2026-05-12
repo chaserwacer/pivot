@@ -123,7 +123,12 @@ export const mockWeather: WeatherSnapshot = {
   summary: "Light snow easing by 10am, sun by noon.",
   sunrise: "2026-05-12T05:54:00-06:00",
   sunset: "2026-05-12T20:08:00-06:00",
-  alerts: [],
+  alerts: [
+    {
+      severity: "advisory",
+      title: "Afternoon thunderstorms above 11,000 ft — clear summits by 1pm.",
+    },
+  ],
 };
 
 /**

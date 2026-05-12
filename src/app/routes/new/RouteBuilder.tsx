@@ -30,6 +30,8 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
   const [aiPrompt, setAiPrompt] = useState("");
   const [aiResult, setAiResult] = useState<{ route: Route; rationale: string }[] | null>(null);
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState<string | null>(null);
 
   const stats = useMemo(() => {
     if (waypoints.length < 2) {
@@ -85,13 +87,56 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
     setWaypoints((wp) => [...wp].reverse());
   }
 
+  async function save() {
+    if (waypoints.length < 2) {
+      setSavedMsg("Drop at least two waypoints first.");
+      return;
+    }
+    setSaving(true);
+    setSavedMsg(null);
+    try {
+      const res = await fetch("/api/routes", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          activity,
+          waypoints,
+          distance_m: stats.distance_m,
+          ascent_m: stats.ascent_m,
+          estimated_time_s: stats.estimated_time_s,
+        }),
+      });
+      const json = await res.json();
+      setSavedMsg(json?.id ? `Saved as ${json.id}` : "Saved.");
+    } catch {
+      setSavedMsg("Couldn't save — try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <div className="px-5 pt-4 md:pt-8">
       <div className="mb-4 flex items-center justify-between">
         <a href="/" className="text-sm text-ink-500">‹ Cancel</a>
         <h1 className="text-base font-semibold">{aiMode ? "Plan with AI" : "New route"}</h1>
-        <button className="rounded-full bg-accent px-3 py-1.5 text-sm text-white shadow-card">Save</button>
+        <button
+          onClick={save}
+          disabled={saving}
+          className="rounded-full bg-accent px-3 py-1.5 text-sm text-white shadow-card disabled:opacity-60"
+        >
+          {saving ? "Saving…" : "Save"}
+        </button>
       </div>
+      {savedMsg && (
+        <p
+          role="status"
+          aria-live="polite"
+          className="mb-3 rounded-2xl bg-white p-2 text-center text-xs text-ink-700 shadow-card"
+        >
+          {savedMsg}
+        </p>
+      )}
 
       {aiMode ? (
         <section className="mb-6">

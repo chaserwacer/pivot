@@ -17,6 +17,28 @@ export default function HomePage() {
           Aspen · {mockWeather.temp_c}°C
         </h1>
         <p className="mt-1 max-w-md text-sm text-ink-500">{mockWeather.summary}</p>
+        {mockWeather.alerts.length > 0 && (
+          <ul className="mt-3 space-y-2" aria-label="Weather alerts">
+            {mockWeather.alerts.map((a, i) => (
+              <li
+                key={i}
+                role="alert"
+                className={`rounded-2xl border px-4 py-2 text-sm shadow-card ${
+                  a.severity === "warning"
+                    ? "border-red-200 bg-red-50 text-red-900"
+                    : a.severity === "watch"
+                      ? "border-orange-200 bg-orange-50 text-orange-900"
+                      : "border-amber-200 bg-amber-50 text-amber-900"
+                }`}
+              >
+                <span className="font-medium uppercase tracking-wide text-[10px]">
+                  {a.severity}
+                </span>{" "}
+                · {a.title}
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <div className="mb-8 grid gap-3 md:grid-cols-2">
