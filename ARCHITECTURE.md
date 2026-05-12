@@ -325,26 +325,39 @@ All under `/api`. JSON. Auth via session cookie or `Authorization: Bearer`.
 
 Delivered in the scaffold:
 - Next.js 14 + TS + Tailwind app shell with App Router.
-- Pages: Home, Discover, Route detail, Builder, AI Settings.
-- Components: route card, elevation profile (SVG), map preview placeholder,
-  activity chips, bottom nav, top bar.
-- Mocked API routes: `/api/routes`, `/api/routes/[id]`, `/api/ai/suggest`,
-  `/api/weather`, `/api/strava/connect`, `/api/strava/activities`.
+- Pages: Home, Discover, Route detail (with real **MapLibre** map), Builder,
+  AI Settings, You, **Record**.
+- Components: route card, SVG elevation profile, **interactive map view**,
+  activity chips, bottom nav, top bar, service-worker registrar.
+- API routes: `/api/routes`, `/api/routes/[id]`, `/api/routes/[id]/export`
+  (real GPX), `/api/ai/suggest`, `/api/weather`, `/api/strava/connect`,
+  `/api/strava/activities`, `/api/me`, `/api/me/preferences`.
 - Seed data for 6 routes around Aspen, CO with realistic stats.
-- AI suggestion endpoint wired through a `suggestRoute()` interface — defaults to
-  rule-based mock, swaps to Anthropic SDK when `ANTHROPIC_API_KEY` is set.
-- GPX export helper.
-- PWA manifest + icons stub.
+- AI suggestion endpoint wired through a `suggestRoute()` interface that runs a
+  **real Anthropic tool-use loop** (`get_weather` / `list_candidate_routes` /
+  `compose_suggestion`) with **prompt caching** when `ANTHROPIC_API_KEY` is set
+  — and falls back to the deterministic ranker otherwise. The server validates
+  every `route_id` Claude emits against the candidate set, blocking
+  hallucinated geometry.
+- GPX export helper with XML-escaped metadata.
+- PWA manifest + maskable icon + app-shell service worker.
+- **Prisma schema** (Postgres + PostGIS) matching the data model in §3.
+- **Capacitor 6 config** ready for `npx cap add ios|android`.
+- **Vitest** test suite covering units, GPX, and the AI ranker.
 
-Explicitly deferred (next sessions, in order):
-1. Real map (MapLibre) + Valhalla integration.
-2. Full Anthropic tool-use loop with the segment validator.
-3. Strava OAuth callback + token refresh + push uploads.
-4. Auth.js wiring and Postgres/PostGIS migrations (Prisma schema).
-5. Offline tile caching via Capacitor and Service Worker.
-6. Recording screen (native plugin for background geolocation).
-7. Observability stack (OTel + Grafana).
-8. Accessibility audit (VoiceOver / TalkBack passes), i18n.
+Iteration status (vs the original roadmap):
+
+| Iteration | Goal                                                  | Status |
+| --------- | ----------------------------------------------------- | ------ |
+| 0         | Architecture doc + scaffold + mocks                   | ✅ done |
+| 1         | MapLibre + Valhalla snap-to-trail in the builder      | 🟡 MapLibre wired; Valhalla pending |
+| 2         | Anthropic tool-use loop and segment validator         | 🟡 loop + id validator shipped; segment compose pending |
+| 3         | Auth.js + Prisma + Postgres migrations                | 🟡 schema drafted; auth/migrations pending |
+| 4         | Strava OAuth round-trip + webhooks                    | ⬜ deferred |
+| 5         | Capacitor shell + offline tiles                       | 🟡 config + service worker; tile caching pending |
+| 6         | Recording screen + GPX out + push to Strava           | 🟡 screen shipped against stub; native plugin pending |
+| 7         | Observability stack (OTel + Grafana)                  | ⬜ deferred |
+| 8         | Accessibility audit + i18n                            | ⬜ deferred |
 
 ---
 

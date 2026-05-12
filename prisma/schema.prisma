@@ -1,0 +1,158 @@
+// Pivot data model — Postgres + PostGIS.
+//
+// PostGIS types (`GEOGRAPHY(Point)`, `GEOGRAPHY(LineString)`) are not first-class
+// Prisma scalars; we model them as `Unsupported("geography...")` so the schema
+// migrates cleanly while keeping queries on a raw-SQL escape hatch for spatial
+// joins. Iteration 1 wires the actual `GIST` indexes in a follow-up migration.
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+enum Activity {
+  hike
+  run
+  bike
+  ski
+  climb
+}
+
+enum Visibility {
+  private
+  unlisted
+  public
+}
+
+enum RouteSource {
+  pivot
+  user
+  strava
+  alltrails
+  gaia
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  displayName  String
+  units        String       @default("imperial") // "imperial" | "metric"
+  homeGeog     Unsupported("geography(Point, 4326)")?
+  createdAt    DateTime     @default(now())
+
+  preferences  Preferences?
+  routes       Route[]      @relation("OwnedRoutes")
+  stravaLink   StravaLink?
+  bookings     Booking[]
+  aiResults    AiSuggestion[]
+}
+
+model Preferences {
+  userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activities        Activity[]
+  intensity         Int      @default(3)
+  crowdTolerance    Int      @default(3)
+  surfacePref       String[] @default([])
+  avoidFeatures     String[] @default([])
+  useStravaFitness  Boolean  @default(true)
+  useBookings       Boolean  @default(true)
+  useCalendar       Boolean  @default(false)
+  updatedAt         DateTime @updatedAt
+}
+
+model Route {
+  id          String      @id @default(cuid())
+  ownerId     String?
+  owner       User?       @relation("OwnedRoutes", fields: [ownerId], references: [id], onDelete: SetNull)
+  title       String
+  activity    Activity
+  distanceM   Int
+  ascentM     Int
+  difficulty  Int
+  geom        Unsupported("geography(LineString, 4326)")
+  bbox        Unsupported("geography(Polygon, 4326)")
+  source      RouteSource @default(pivot)
+  sourceRef   String?
+  popularity  Int         @default(0)
+  visibility  Visibility  @default(public)
+  createdAt   DateTime    @default(now())
+
+  versions    RouteVersion[]
+}
+
+model RouteVersion {
+  id        String   @id @default(cuid())
+  routeId   String
+  route     Route    @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  geom      Unsupported("geography(LineString, 4326)")
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+model Segment {
+  id              String   @id @default(cuid())
+  geom            Unsupported("geography(LineString, 4326)")
+  surface         String
+  popularity      Int      @default(0)
+  avgGrade        Float?
+  lastConditionAt DateTime?
+  closureUntil    DateTime?
+
+  conditions      Condition[]
+}
+
+model Condition {
+  id          String   @id @default(cuid())
+  segmentId   String
+  segment     Segment  @relation(fields: [segmentId], references: [id], onDelete: Cascade)
+  kind        String   // mud, snow, closure, downed_tree, ...
+  severity    Int
+  observedAt  DateTime
+  source      String
+  body        String
+}
+
+model WeatherCache {
+  geohash String
+  validAt DateTime
+  payload Json
+
+  @@id([geohash, validAt])
+}
+
+model StravaLink {
+  userId            String   @id
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  athleteId         BigInt   @unique
+  accessTokenEnc    String   // KMS-encrypted
+  refreshTokenEnc   String
+  expiresAt         DateTime
+  scope             String
+}
+
+model Booking {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vendor    String
+  externalRef String
+  location  Unsupported("geography(Point, 4326)")
+  startsAt  DateTime
+  endsAt    DateTime
+}
+
+model AiSuggestion {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  promptHash  String   @index
+  response    Json
+  createdAt   DateTime @default(now())
+}

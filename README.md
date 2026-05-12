@@ -26,6 +26,7 @@ Screens to try:
 | `/routes/new?ai=1`    | AI route suggestions panel (calls `/api/ai/suggest`)              |
 | `/settings`           | AI preferences (activities, intensity, signals)                  |
 | `/me`                 | Saved routes + connected accounts                                |
+| `/record`             | Activity recorder (timer + push-to-Strava stub)                  |
 
 API endpoints:
 
@@ -43,15 +44,44 @@ GET    /api/me                     demo user
 PATCH  /api/me/preferences         save AI prefs (echo)
 ```
 
+## Testing
+
+```bash
+npm test            # vitest run
+npm run test:watch  # vitest in watch mode
+```
+
+Coverage today: `units`, `gpx`, and the `ai` rule-based ranker.
+
+## Mobile shell (Capacitor)
+
+`capacitor.config.ts` is in place. To produce native shells:
+
+```bash
+npm run build && npx next export -o out
+npx cap add ios       # one-time
+npx cap add android   # one-time
+npx cap sync
+npx cap open ios      # opens Xcode
+```
+
 ## What's mocked vs real
 
-Real in this scaffold: full Next.js 14 App Router app, Tailwind design system,
-typed data model, GPX export, AI suggestion seam, deep-link OAuth start,
-PWA manifest, accessible bottom-nav, elevation profile rendering.
+Real in this scaffold:
+- Full Next.js 14 App Router app, Tailwind design system, typed data model.
+- **Interactive MapLibre map** on route detail (using the public MapLibre demo
+  style; swap to your own vector tiles in production).
+- **Anthropic tool-use loop** with prompt caching when `ANTHROPIC_API_KEY` is
+  set; server-side id validation rejects hallucinated routes.
+- GPX export, deep-link OAuth start, PWA manifest + service worker, accessible
+  bottom-nav, elevation profile rendering.
+- **Prisma schema** for Postgres + PostGIS; **Capacitor 6** config.
+- **Vitest** unit tests.
 
-Mocked: map (SVG topo placeholder — MapLibre in iteration 1), routing engine,
-Anthropic tool-use loop (rule-based ranker today, swaps to Claude in iteration
-2 without changing `suggestRoute()`'s signature), Strava token exchange,
-Postgres persistence.
+Still mocked / deferred:
+- Valhalla snap-to-trail (manual builder uses a slider stand-in).
+- Strava token exchange + webhooks.
+- Auth.js + database migrations (schema is drafted but not migrated).
+- Background geolocation for the recorder (native plugin in iteration 6).
 
-The roadmap from here is in ARCHITECTURE.md §11.
+The full roadmap is in ARCHITECTURE.md §11.

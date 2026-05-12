@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { TopBar } from "@/components/TopBar";
 import { BottomNav } from "@/components/BottomNav";
+import { SwRegister } from "@/components/SwRegister";
 
 export const metadata: Metadata = {
   title: "Pivot — outdoor route planning",
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <main className="flex-1 pb-24">{children}</main>
           <BottomNav />
         </div>
+        <SwRegister />
       </body>
     </html>
   );

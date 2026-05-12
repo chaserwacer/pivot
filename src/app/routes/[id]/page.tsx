@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { getRoute, mockWeather } from "@/lib/mockData";
 import { ElevationProfile } from "@/components/ElevationProfile";
-import { MapPreview } from "@/components/MapPreview";
+import { MapView } from "@/components/MapView";
 import { Chip } from "@/components/Chip";
 import { ActivityGlyph } from "@/components/ActivityGlyph";
 import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
@@ -22,7 +22,12 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
       </div>
 
       <div className="mt-4 px-5">
-        <MapPreview className="h-56 md:h-72" accent={route.thumbnail_color} />
+        <MapView
+          className="h-56 md:h-72"
+          accent={route.thumbnail_color}
+          bbox={route.bbox}
+          line={sampleLineFromBbox(route.bbox)}
+        />
       </div>
 
       <div className="mx-5 mt-4 grid grid-cols-3 gap-2 rounded-2xl bg-white p-4 shadow-card">
@@ -74,6 +79,22 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
       </div>
     </div>
   );
+}
+
+// Stand-in line geometry until iteration 1 wires Valhalla; tracks a smooth
+// curve across the route's bounding box so the map has something to draw.
+function sampleLineFromBbox(
+  bbox: [number, number, number, number],
+): Array<[number, number]> {
+  const [w, s, e, n] = bbox;
+  const pts: Array<[number, number]> = [];
+  for (let i = 0; i <= 40; i++) {
+    const t = i / 40;
+    const lng = w + (e - w) * t;
+    const lat = s + (n - s) * (0.5 + 0.45 * Math.sin(t * Math.PI));
+    pts.push([lng, lat]);
+  }
+  return pts;
 }
 
 function Stat({ label, value }: { label: string; value: string }) {
