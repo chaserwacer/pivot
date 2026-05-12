@@ -1,0 +1,14 @@
+{
+  "name": "Pivot — outdoor route planning",
+  "short_name": "Pivot",
+  "description": "Plan, discover and share outdoor routes with AI suggestions tuned to weather, conditions, and your trip.",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#F4F6F8",
+  "theme_color": "#0EA5A4",
+  "categories": ["health", "navigation", "lifestyle", "sports"],
+  "icons": [
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}
