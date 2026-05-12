@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { RouteCard } from "@/components/RouteCard";
+import { GpxImport } from "@/components/GpxImport";
 import { listSavedRoutes } from "@/lib/offline";
 import type { Route } from "@/lib/types";
 
@@ -43,6 +44,11 @@ export default function MePage() {
             ))}
           </ul>
         )}
+      </section>
+
+      <section className="mt-6">
+        <h2 className="mb-2 text-sm font-semibold">Bring your own</h2>
+        <GpxImport />
       </section>
 
       <section className="mt-6 rounded-2xl bg-white p-4 text-sm shadow-card">

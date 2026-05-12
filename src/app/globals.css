@@ -29,6 +29,16 @@ body {
     background: #0B0F12;
     color: #F4F6F8;
   }
+  /* Default card background gets darkened so existing bg-white surfaces stop
+     glaring at the user. We deliberately don't invert text in cards — they
+     already use ink-700 / ink-500, which read well on the dark card.  */
+  .bg-white { background-color: #161B21 !important; color: #E6E9EC; }
+  .text-ink-900 { color: #F4F6F8 !important; }
+  .text-ink-700 { color: #C8CDD3 !important; }
+  .text-ink-500 { color: #8A929C !important; }
+  .border-ink-100 { border-color: #232A33 !important; }
+  .bg-ink-50 { background-color: #0F1418 !important; }
+  .bg-ink-100 { background-color: #1A2027 !important; }
 }
 
 @keyframes pivot-blink {

@@ -1,18 +1,21 @@
 import Link from "next/link";
+import { headers } from "next/headers";
 import { seedRoutes, mockWeather } from "@/lib/mockData";
 import { RouteCard } from "@/components/RouteCard";
 import { ContinuePlanning } from "@/components/ContinuePlanning";
 import { Onboarding } from "@/components/Onboarding";
+import { detectLocale, t } from "@/lib/i18n";
 
 export default function HomePage() {
   const hero = seedRoutes.slice(0, 3);
   const list = seedRoutes.slice(3);
+  const locale = detectLocale(headers().get("accept-language"));
 
   return (
     <div className="px-5 pt-4 md:pt-8">
       <Onboarding />
       <section className="mb-6">
-        <p className="text-sm text-ink-500">Good morning, Sam</p>
+        <p className="text-sm text-ink-500">{t(locale, "home.greeting")}, Sam</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
           Aspen · {mockWeather.temp_c}°C
         </h1>
@@ -47,8 +50,8 @@ export default function HomePage() {
           className="flex items-center justify-between rounded-2xl bg-accent px-5 py-4 text-white shadow-card transition active:scale-[0.99]"
         >
           <div>
-            <p className="text-sm font-medium opacity-90">Plan with AI</p>
-            <p className="text-xs opacity-75">Built around your trip, weather and fitness.</p>
+            <p className="text-sm font-medium opacity-90">{t(locale, "home.plan_with_ai")}</p>
+            <p className="text-xs opacity-75">{t(locale, "home.plan_subtitle")}</p>
           </div>
           <span aria-hidden className="text-xl">→</span>
         </Link>
@@ -57,8 +60,8 @@ export default function HomePage() {
           className="flex items-center justify-between rounded-2xl border border-ink-100 bg-white px-5 py-4 text-ink-900 shadow-card transition active:scale-[0.99]"
         >
           <div>
-            <p className="text-sm font-medium">Trip planner</p>
-            <p className="text-xs text-ink-500">Multi-day itinerary around your stay.</p>
+            <p className="text-sm font-medium">{t(locale, "home.trip_planner")}</p>
+            <p className="text-xs text-ink-500">{t(locale, "home.trip_subtitle")}</p>
           </div>
           <span aria-hidden className="text-xl">→</span>
         </Link>
@@ -68,8 +71,8 @@ export default function HomePage() {
 
       <section className="mb-8">
         <div className="mb-3 flex items-baseline justify-between">
-          <h2 className="text-base font-semibold">For you today</h2>
-          <Link href="/routes" className="text-xs text-accent">See all</Link>
+          <h2 className="text-base font-semibold">{t(locale, "home.for_you")}</h2>
+          <Link href="/routes" className="text-xs text-accent">{t(locale, "common.see_all")}</Link>
         </div>
         <div className="no-scrollbar -mx-5 flex gap-3 overflow-x-auto px-5 pb-2 snap-x snap-mandatory">
           {hero.map((r) => (
@@ -81,7 +84,7 @@ export default function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-3 text-base font-semibold">Popular nearby</h2>
+        <h2 className="mb-3 text-base font-semibold">{t(locale, "home.popular")}</h2>
         <ul className="flex flex-col gap-2">
           {list.map((r) => (
             <li key={r.id}>
