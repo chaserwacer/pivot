@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
 
 /**
  * Strava webhook endpoint.
@@ -26,13 +27,44 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as {
-    object_type?: string;
-    object_id?: number;
-    aspect_type?: string;
-    owner_id?: number;
-    event_time?: number;
-  };
+  // Strava's documented webhook does not sign its push, but partner / private
+  // deployments often add an HMAC. If STRAVA_WEBHOOK_SECRET is set we require
+  // it; otherwise we fall back to accepting any payload (consistent with the
+  // public Strava behaviour).
+  const secret = process.env.STRAVA_WEBHOOK_SECRET;
+  const rawBody = await req.text();
+  if (secret) {
+    const signature = req.headers.get("x-strava-signature");
+    if (!signature) {
+      return NextResponse.json({ error: "missing_signature" }, { status: 401 });
+    }
+    const expected = crypto.createHmac("sha256", secret).update(rawBody).digest("hex");
+    const ok = (() => {
+      try {
+        return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+      } catch {
+        return false;
+      }
+    })();
+    if (!ok) {
+      return NextResponse.json({ error: "bad_signature" }, { status: 401 });
+    }
+  }
+
+  const body = (() => {
+    try {
+      return JSON.parse(rawBody) as {
+        object_type?: string;
+        object_id?: number;
+        aspect_type?: string;
+        owner_id?: number;
+        event_time?: number;
+      };
+    } catch {
+      return {};
+    }
+  })();
+
   // Acknowledge immediately. Real ingestion happens in the worker so the
   // handler returns under Strava's 2 s deadline.
   console.log("[strava] webhook event:", body);
