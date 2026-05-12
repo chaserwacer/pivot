@@ -46,3 +46,25 @@ export async function GET(req: Request) {
   const list = routeId ? mock.filter((c) => c.route_id === routeId) : mock;
   return NextResponse.json({ conditions: list });
 }
+
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => ({}))) as Partial<ConditionReport> & {
+    route_id?: string;
+  };
+  if (!body.route_id || !body.kind || !body.body || !body.severity) {
+    return NextResponse.json({ error: "missing_fields" }, { status: 400 });
+  }
+  const created: ConditionReport = {
+    id: `c-${Date.now().toString(36)}`,
+    route_id: body.route_id,
+    kind: body.kind,
+    severity: body.severity,
+    observed_at: new Date().toISOString(),
+    source: body.source ?? "user:anon",
+    body: body.body,
+  };
+  // Iteration 3 persists this to Postgres. For now, prepend to the in-memory
+  // list so the UI shows the user's submission immediately.
+  mock.unshift(created);
+  return NextResponse.json({ condition: created }, { status: 201 });
+}

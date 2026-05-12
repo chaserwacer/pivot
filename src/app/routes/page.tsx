@@ -26,7 +26,10 @@ export default function DiscoverPage({
 
   return (
     <div className="px-5 pt-4 md:pt-8">
-      <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Discover</h1>
+      <div className="flex items-baseline justify-between">
+        <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">Discover</h1>
+        <Link href="/routes/map" className="text-sm text-accent">Map view →</Link>
+      </div>
       <p className="mt-1 text-sm text-ink-500">Curated routes around you.</p>
 
       <div className="mt-4">
