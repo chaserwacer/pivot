@@ -3,6 +3,7 @@ import type { Route } from "@/lib/types";
 import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
 import { ElevationProfile } from "./ElevationProfile";
 import { ActivityGlyph } from "./ActivityGlyph";
+import { DifficultyDots } from "./DifficultyDots";
 
 interface Props {
   route: Route;
@@ -28,6 +29,7 @@ export function RouteCard({ route, variant = "hero" }: Props) {
           <p className="truncate text-xs text-ink-500">
             {formatDistance(route.distance_m)} · ↑ {formatAscent(route.ascent_m)} · {formatDuration(route.estimated_time_s)}
           </p>
+          <DifficultyDots level={route.difficulty} className="mt-1 inline-block" accent={route.thumbnail_color} />
         </div>
         <span className="text-xs text-ink-300">›</span>
       </Link>

@@ -8,6 +8,9 @@ import { Chip } from "@/components/Chip";
 import { ActivityGlyph } from "@/components/ActivityGlyph";
 import { DownloadButton } from "@/components/DownloadButton";
 import { Conditions } from "@/components/Conditions";
+import { DifficultyDots } from "@/components/DifficultyDots";
+import { SimilarRoutes } from "@/components/SimilarRoutes";
+import { RecentlyViewedTracker } from "@/components/RecentlyViewedTracker";
 import { formatAscent, formatDistance, formatDuration } from "@/lib/units";
 
 export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
@@ -62,6 +65,12 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
         <Stat label="Time" value={formatDuration(route.estimated_time_s)} />
       </div>
 
+      <div className="mx-5 mt-3 flex items-center gap-2 text-sm">
+        <DifficultyDots level={route.difficulty} accent={route.thumbnail_color} showLabel />
+      </div>
+
+      <RecentlyViewedTracker routeId={route.id} title={route.title} />
+
       <section className="mt-6 px-5">
         <h2 className="mb-2 text-sm font-semibold">Elevation</h2>
         <div className="rounded-2xl bg-white p-3 shadow-card">
@@ -103,6 +112,11 @@ export default function RouteDetail({ params }: { params: { id: string } }) {
           <DownloadButton route={route} />
           <ShareButton title={route.title} text={route.summary} />
         </div>
+      </section>
+
+      <section className="mt-6 px-5">
+        <h2 className="mb-2 text-sm font-semibold">You might also like</h2>
+        <SimilarRoutes routeId={route.id} />
       </section>
 
       <div className="sticky bottom-20 mx-5 mt-8 md:bottom-6">

@@ -116,9 +116,18 @@ export default function RouteBuilder({ aiMode }: { aiMode: boolean }) {
           <button
             onClick={runAi}
             disabled={loading}
-            className="mt-4 w-full rounded-2xl bg-accent py-3 text-white shadow-card transition active:scale-[0.99] disabled:opacity-60"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-accent py-3 text-white shadow-card transition active:scale-[0.99] disabled:opacity-60"
           >
-            {loading ? "Thinking…" : "Suggest routes"}
+            {loading ? (
+              <>
+                <span className="thinking-dots inline-flex" aria-hidden>
+                  <span /><span /><span />
+                </span>
+                <span>Thinking</span>
+              </>
+            ) : (
+              "Suggest routes"
+            )}
           </button>
 
           {aiResult && (

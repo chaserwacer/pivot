@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { seedRoutes, mockWeather } from "@/lib/mockData";
 import { RouteCard } from "@/components/RouteCard";
+import { ContinuePlanning } from "@/components/ContinuePlanning";
+import { Onboarding } from "@/components/Onboarding";
 
 export default function HomePage() {
   const hero = seedRoutes.slice(0, 3);
@@ -8,6 +10,7 @@ export default function HomePage() {
 
   return (
     <div className="px-5 pt-4 md:pt-8">
+      <Onboarding />
       <section className="mb-6">
         <p className="text-sm text-ink-500">Good morning, Sam</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight md:text-3xl">
@@ -38,6 +41,8 @@ export default function HomePage() {
           <span aria-hidden className="text-xl">→</span>
         </Link>
       </div>
+
+      <ContinuePlanning />
 
       <section className="mb-8">
         <div className="mb-3 flex items-baseline justify-between">
